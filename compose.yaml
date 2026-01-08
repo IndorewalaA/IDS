@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  worker:
+    build: .
+    image: ids-worker:latest
+    container_name: ids
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1

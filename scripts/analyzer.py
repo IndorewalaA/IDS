@@ -1,15 +1,19 @@
+import os
 import json
 import joblib
 import pandas as pd
 import numpy as np
 
-with open('../models/training_metadata.json', 'r') as f:
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "models"))
+
+with open(os.path.join(MODEL_DIR, 'training_metadata.json'), 'r') as f:
     training_metadata = json.load(f)
 
 REQUIRED_FEATURES = training_metadata['features_used']
 
-le = joblib.load('../models/label_encoder.joblib')
-rf = joblib.load('../models/random_forest.joblib')
+le = joblib.load(os.path.join(MODEL_DIR, 'label_encoder.joblib'))
+rf = joblib.load(os.path.join(MODEL_DIR, 'random_forest.joblib'))
 
 def validate_json(data):
     if not isinstance(data, dict):
