@@ -1,0 +1,35 @@
+{
+    "metadata": "IDS Project",
+    "training_date": "2026-01-08 17:11:54",
+    "accuracy_score": 1.0,
+    "features_used": [
+        "Destination Port",
+        "Flow Duration",
+        "Total Fwd Packets",
+        "Total Backward Packets",
+        "Flow Bytes/s",
+        "Flow Packets/s",
+        "Flow IAT Mean",
+        "Flow IAT Max",
+        "Packet Length Mean",
+        "Packet Length Std",
+        "Average Packet Size",
+        "SYN Flag Count",
+        "ACK Flag Count",
+        "PSH Flag Count",
+        "FIN Flag Count"
+    ],
+    "label_mapping": {
+        "BENIGN": 0,
+        "DDoS": 1,
+        "PortScan": 2,
+        "Web Attack": 3
+    },
+    "dataset_stats": {
+        "total_rows": 72180,
+        "benign": 30000,
+        "ddos": 20000,
+        "portscan": 20000,
+        "web_attack": 2180
+    }
+}
