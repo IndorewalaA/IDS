@@ -17,9 +17,9 @@ WORKDIR /app
 
 COPY --from=builder /root/.local /root/.local
 COPY models/ ./models/
-COPY scripts/ ./scripts/
+COPY src/ ./src/
 
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "scripts/analyzer.py"]
+CMD ["python", "src/analyzer.py"]
