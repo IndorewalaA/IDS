@@ -1,7 +1,7 @@
 import os
 import boto3
 import json
-from analyzer_logic import validate_json, predict_packet
+from src.analyzer_logic import validate_json, predict_packet
 from dotenv import load_dotenv
 
 load_dotenv()
