@@ -5,3 +5,4 @@ numpy
 pytest
 boto3
 psycopg2-binary
+python-dotenv

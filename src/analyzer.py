@@ -1,61 +1,44 @@
 import os
+import boto3
 import json
-import joblib
-import pandas as pd
-import numpy as np
+from analyzer_logic import validate_json, predict_packet
+from dotenv import load_dotenv
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "models"))
+load_dotenv()
 
-with open(os.path.join(MODEL_DIR, 'training_metadata.json'), 'r') as f:
-    training_metadata = json.load(f)
+client = boto3.client(
+    'sqs', 
+    region_name=os.getenv('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+)
 
-REQUIRED_FEATURES = training_metadata['features_used']
+QUEUE_URL = 'https://sqs.us-east-2.amazonaws.com/007093308203/ids-queue'
 
-le = joblib.load(os.path.join(MODEL_DIR, 'label_encoder.joblib'))
-rf = joblib.load(os.path.join(MODEL_DIR, 'random_forest.joblib'))
-
-def validate_json(data):
-    if not isinstance(data, dict):
-        return False, "Input is not a dictionary."
-    missing_keys = [f for f in REQUIRED_FEATURES if f not in data]
-    if missing_keys:
-        return False, f"Missing keys: {missing_keys}."
-    return True, "Data validated."
-
-def predict_packet(packet: dict):
-    df = pd.DataFrame([packet])
-    # ensure columns are in the desired order
-    df = df[REQUIRED_FEATURES]
-    # replace infinities with 0
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    df.fillna(0, inplace=True)
-    # predict label
-    prediction = rf.predict(df)[0]
-    label = le.inverse_transform([prediction])[0]
-    return label
-
-
+def listen_to_queue():
+    print(f"Listening to {QUEUE_URL}...")
+    while True:
+        response = client.receive_message(
+            QueueUrl=QUEUE_URL,
+            MaxNumberOfMessages=1,
+            WaitTimeSeconds=20
+        )
+        messages = response.get('Messages', [])
+        for msg in messages:
+            try:
+                packet_data = json.loads(msg['Body'])
+                is_valid, error_msg = validate_json(packet_data)
+                if is_valid:
+                    prediction = predict_packet(packet_data)
+                    print(f"Prediction: {prediction}")
+                else:
+                    print(f"Bad packet: {error_msg} Skipping...")
+                client.delete_message(
+                    QueueUrl=QUEUE_URL,
+                    ReceiptHandle=msg['ReceiptHandle']
+                )
+            except Exception as e:
+                print(f"Error: {e}")
 if __name__ == "__main__":
-    test_packet = {
-        "Destination Port": 80,
-        "Flow Duration": 1500,
-        "Total Fwd Packets": 2,
-        "Total Backward Packets": 1,
-        "Flow Bytes/s": 1250.0,
-        "Flow Packets/s": 2.0,
-        "Flow IAT Mean": 10.0,
-        "Flow IAT Max": 50.0,
-        "Packet Length Mean": 450.0,
-        "Packet Length Std": 20.0,
-        "Average Packet Size": 460.0,
-        "SYN Flag Count": 1,
-        "ACK Flag Count": 0,
-        "PSH Flag Count": 0,
-        "FIN Flag Count": 0
-    }
-
-    is_valid, msg = validate_json(test_packet)
-    if is_valid:
-        result = predict_packet(test_packet)
-        print(result)
+    print("Analyzer is Running...")
+    listen_to_queue()
