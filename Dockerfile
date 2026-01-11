@@ -22,4 +22,4 @@ COPY src/ ./src/
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "src/analyzer.py"]
+CMD ["python", "-m", "src.analyzer"]
