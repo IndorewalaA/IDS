@@ -59,10 +59,10 @@ if not df.empty:
     with col_right:
         st.subheader("Attack Timeline")
         df['event_time'] = pd.to_datetime(df['event_time'])
-        timeline = df.set_index('event_time').resample('1T').size().reset_index(name='count')
+        timeline = df.set_index('event_time').resample('1min').size().reset_index(name='count')
         fig_line = px.line(timeline, x='event_time', y='count', title='Attacks per Minute')
-        st.plotly_chart(fig_line, use_container_width=True)
-    st.subheader("📝 Recent Logs")
+        st.plotly_chart(fig_line, width='stretch')
+    st.subheader("Recent Logs")
     st.dataframe(df[['event_time', 'destination_port', 'prediction', 'flow_duration']].head(10))
 else:
     st.info("No attacks detected yet. System is secure (or waiting for traffic).")
